@@ -138,8 +138,9 @@ HRESULT m_IDirectSoundBuffer8::SetVolume(LONG lVolume)
 	}
 	else
 	{
+		int posVolume = -lVolume;
 		int txtValue = sfxVolume; //aka the value set in the text file
-		float subtractValue = 415 * log10(txtValue / 100.0f) + 415;
+		float subtractValue = posVolume * log10(txtValue / 100.0f) + posVolume;
 		int newValue = round(20 * log10(txtValue / 100.0f) * 100 - subtractValue);
 
 		ProxyInterface->SetVolume(newValue);
