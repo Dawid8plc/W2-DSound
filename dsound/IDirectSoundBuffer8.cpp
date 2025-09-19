@@ -122,7 +122,28 @@ HRESULT m_IDirectSoundBuffer8::SetFormat(LPCWAVEFORMATEX pcfxFormat)
 
 HRESULT m_IDirectSoundBuffer8::SetVolume(LONG lVolume)
 {
-	return ProxyInterface->SetVolume(lVolume);
+	if (sfxVolume < 0) sfxVolume = 0;
+	if (sfxVolume > 100) {
+		sfxVolume = 100;
+	}
+
+	if (sfxVolume == 100)
+	{
+		return ProxyInterface->SetVolume(lVolume);
+	}
+
+	if (sfxVolume == 0)
+	{
+		ProxyInterface->SetVolume(-10000);
+	}
+	else
+	{
+		int txtValue = sfxVolume; //aka the value set in the text file
+		float subtractValue = 415 * log10(txtValue / 100.0f) + 415;
+		int newValue = round(20 * log10(txtValue / 100.0f) * 100 - subtractValue);
+
+		ProxyInterface->SetVolume(newValue);
+	}
 }
 
 HRESULT m_IDirectSoundBuffer8::SetPan(LONG lPan)
