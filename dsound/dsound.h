@@ -41,6 +41,7 @@ typedef HRESULT(WINAPI *DirectSoundCaptureCreate8Proc)(LPCGUID, LPDIRECTSOUNDCAP
 
 void genericQueryInterface(REFIID riid, LPVOID * ppvObj);
 extern AddressLookupTable<void> ProxyAddressLookupTable;
+extern int sfxVolume;
 
 #include "IDirectSound8.h"
 #include "IDirectSound3DBuffer8.h"
