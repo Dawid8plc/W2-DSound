@@ -1,25 +1,7 @@
-# DirectX Wrappers
+# W2-DSound
 
-### Introduction
-
-Wraps the main DirectX and Direct3D DLLs.  It allows you to intercept calls to DirectX and Direct3D interface functions so that you can log API calls or you can add your own code into the game, such as enabling Anti-Aliasing or creating overlays in the game. Once you have compiled this you can simply copy the DLL into the same folder as the game's executable and it should load it as if it were the real DLL file. It still forwards all calls to the real one in System32, it just allows stuff to happen in between. 
-
-Wraps the following versions of DirectX:
-- DirectX 1-7, DirectDraw and Direct3D (ddraw.dll)
-- DirectX 8, Direct3D (d3d8.dll)
-- DirectX 9, Direct3D (d3d9.dll)
-- DirectSound and DirectSound8 (dsound.dll)
-- DirectInput (dinput.dll)
-- DirectInput8 (dinput8.dll)
-
-I plan to add these DLLs later:
-- d2d1.dll
-- d3d10.dll
-- d3d10core.dll
-- d3d11.dll
-- d3d12.dll
-
-Note: It currently only works with 32bit games, but I might add 64bit support at some point.
+A proxy dll for DirectSound in Worms 2 to allow sound modification as well as load WormKits in-game.
+Originally forked from elishacloud/DirectX-Wrappers (see their license below) and modified specifically for Worms 2.
 
 ### License
 
@@ -43,7 +25,3 @@ Code in this project is taken from:
 - [Direct3D9 Wrapper DLL](https://gist.github.com/shaunlebron/3854bf4eec5bec297907)
 - [DirectSoundControl](https://github.com/nRaecheR/DirectSoundControl)
 - [XWA hooks](https://github.com/JeremyAnsel/xwa_hooks/tree/master/DInputLogger)
-
-### Development
-
-Development was done in C++ using Microsoft Visual Studio Community 2017.
