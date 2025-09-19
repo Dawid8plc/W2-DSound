@@ -15,10 +15,11 @@
 */
 
 #include "dsound.h"
+#include <windows.h>
 
 #pragma comment (lib, "dxguid.lib")
 
-std::ofstream Log::LOG("dsound.log");
+//std::ofstream Log::LOG("dsound.log");
 AddressLookupTable<void> ProxyAddressLookupTable = AddressLookupTable<void>();
 
 DirectSoundCreateProc m_pDirectSoundCreate;
@@ -34,20 +35,75 @@ DirectSoundFullDuplexCreateProc m_pDirectSoundFullDuplexCreate;
 DirectSoundCreate8Proc m_pDirectSoundCreate8;
 DirectSoundCaptureCreate8Proc m_pDirectSoundCaptureCreate8;
 
+
+HMODULE Modules[128];
+int Count = 0;
+HMODULE dsounddll;
+
+BOOL EnableWK(void)
+{
+	BOOL RetVal = 1;
+	char* cmd = GetCommandLineA();
+	BOOLEAN in_QM = FALSE, in_TEXT = FALSE, in_SPACE = TRUE;
+	int st, en;
+	char tmp[16];
+	int i = 0, j = 0;
+	while (1) {
+		char a = cmd[i];
+		if (in_QM) {
+			if (a == '\"') { in_QM = FALSE; }
+			else { if (cmd[i + 1] == 0) in_QM = FALSE; if (j < 15) { tmp[j] = a; j++; } }
+		}
+		else {
+			switch (a) {
+			case '\"':
+				in_QM = TRUE;
+				in_TEXT = TRUE;
+				if (in_SPACE) { st = i; j = 0; }
+				in_SPACE = FALSE;
+				break;
+			case ' ':
+			case '\t':
+			case '\n':
+			case '\r':
+			case '\0':
+				if (in_TEXT) {
+					tmp[j] = '\0'; en = i;
+					if (!strcmp(tmp, "/nowk")) {
+						RetVal = 0;
+						for (int k = st; k < en; k++) cmd[k] = ' ';
+					}
+				}
+				in_TEXT = FALSE;
+				in_SPACE = TRUE;
+				break;
+			default:
+				in_TEXT = TRUE;
+				if (in_SPACE) { st = i; j = 0; }
+				if (j < 15) { tmp[j] = a; j++; }
+				in_SPACE = FALSE;
+				break;
+			}
+		}
+		if (!cmd[i]) break;
+		i++;
+	}
+	return RetVal;
+}
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
 	UNREFERENCED_PARAMETER(lpReserved);
 
-	static HMODULE dsounddll;
-
 	switch (fdwReason)
 	{
 	case DLL_PROCESS_ATTACH:
+	{
 		// Load dll
 		char path[MAX_PATH];
 		GetSystemDirectoryA(path, MAX_PATH);
 		strcat_s(path, "\\dsound.dll");
-		Log() << "Loading " << path;
+		//Log() << "Loading " << path;
 		dsounddll = LoadLibraryA(path);
 
 		// Get function addresses
@@ -63,13 +119,32 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 		m_pDirectSoundFullDuplexCreate = (DirectSoundFullDuplexCreateProc)GetProcAddress(dsounddll, "DirectSoundFullDuplexCreate");
 		m_pDirectSoundCreate8 = (DirectSoundCreate8Proc)GetProcAddress(dsounddll, "DirectSoundCreate8");
 		m_pDirectSoundCaptureCreate8 = (DirectSoundCaptureCreate8Proc)GetProcAddress(dsounddll, "DirectSoundCaptureCreate8");
-		break;
 
+		if (EnableWK()) {
+			//Load wk*.dll
+			GetModuleFileNameA(0, path, MAX_PATH);
+			char* dirend = strrchr(path, '\\') + 1;
+			*dirend = 0;
+			strcat(path, "wk*.dll");
+			WIN32_FIND_DATAA fd;
+			HANDLE fh = FindFirstFileA(path, &fd);
+			if (fh != INVALID_HANDLE_VALUE)
+			{
+				do {
+					HMODULE hm = LoadLibraryA(fd.cFileName);
+					if (hm && Count < 128) Modules[Count++] = hm;
+					
+				} while (FindNextFileA(fh, &fd));
+				FindClose(fh);
+			}
+		}
+		break;
+	}
 	case DLL_PROCESS_DETACH:
+		while (Count) FreeLibrary(Modules[--Count]);
 		FreeLibrary(dsounddll);
 		break;
 	}
-
 	return TRUE;
 }
 
