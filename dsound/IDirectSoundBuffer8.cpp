@@ -134,7 +134,7 @@ HRESULT m_IDirectSoundBuffer8::SetVolume(LONG lVolume)
 
 	if (sfxVolume == 0)
 	{
-		ProxyInterface->SetVolume(-10000);
+		return ProxyInterface->SetVolume(-10000);
 	}
 	else
 	{
@@ -143,7 +143,7 @@ HRESULT m_IDirectSoundBuffer8::SetVolume(LONG lVolume)
 		float subtractValue = posVolume * log10(txtValue / 100.0f) + posVolume;
 		int newValue = round(20 * log10(txtValue / 100.0f) * 100 - subtractValue);
 
-		ProxyInterface->SetVolume(newValue);
+		return ProxyInterface->SetVolume(newValue);
 	}
 }
 
